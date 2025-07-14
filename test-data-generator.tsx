@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import axios from "axios"
 import {
   Upload,
   Download,
@@ -681,7 +682,7 @@ export default function Component() {
     }
   }
 
-  const saveGeneration = () => {
+  const saveGeneration = async() => {
     if (generatedData.length === 0) {
       alert("No data to save. Please generate data first.")
       return
@@ -699,31 +700,44 @@ export default function Component() {
       fieldConfigs: fields,
     }
 
-    const newStoredGenerations = [...storedGenerations, generation]
-    setStoredGenerations(newStoredGenerations)
+    // const newStoredGenerations = [...storedGenerations, generation]
+    // setStoredGenerations(newStoredGenerations)
 
-    // Store in localStorage for persistence
-    localStorage.setItem("testDataGenerations", JSON.stringify(newStoredGenerations))
+    let response = await axios.post("http://localhost:5000/api/generator/create",{data:JSON.stringify(generation)})
+    if(response.data){
+      loadStoredGenerations()
+    }
 
     alert(`Generation "${generation.name}" saved successfully!`)
   }
 
-  const loadStoredGenerations = () => {
-    try {
-      const stored = localStorage.getItem("testDataGenerations")
-      if (stored) {
-        setStoredGenerations(JSON.parse(stored))
+  const loadStoredGenerations = async() => {
+    try {      
+      let data = await axios.get("http://localhost:5000/api/generator/")
+      if (data.data.status) {
+        let temp:StoredGeneration[]=[] 
+
+         data.data.data?.map((item:any)=>{
+          console.log("temp     0",item)
+          temp.push(JSON.parse(item.data))
+         })
+        setStoredGenerations([...temp])
       }
     } catch (error) {
       console.error("Error loading stored generations:", error)
     }
   }
 
-  const deleteGeneration = (id: string) => {
+  const deleteGeneration = async(id: string) => {
     if (confirm("Are you sure you want to delete this generation?")) {
+
+      let responce =await axios.post("http://localhost:5000/api/generator/delete",{id:id})
+      if(responce?.data.status){
       const newStoredGenerations = storedGenerations.filter((g) => g.id !== id)
       setStoredGenerations(newStoredGenerations)
-      localStorage.setItem("testDataGenerations", JSON.stringify(newStoredGenerations))
+      }else{
+      
+      }
     }
   }
 
