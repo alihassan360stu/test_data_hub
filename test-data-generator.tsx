@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-import baseUrl from "@/services/baseUrl"
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -86,6 +85,7 @@ interface StoredGeneration {
   fieldConfigs: FieldConfig[]
 }
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 export default function Component() {
   const [currentView, setCurrentView] = useState<"generator" | "datalist">("generator")
   const [storedGenerations, setStoredGenerations] = useState<StoredGeneration[]>([])
@@ -704,7 +704,7 @@ export default function Component() {
     // const newStoredGenerations = [...storedGenerations, generation]
     // setStoredGenerations(newStoredGenerations)
 
-    let response = await axios.post(`${baseUrl}/generator/create`,{data:JSON.stringify(generation)})
+    let response = await axios.post(`${apiUrl}/generator/create`,{data:JSON.stringify(generation)})
     if(response.data){
       loadStoredGenerations()
     }
@@ -714,7 +714,7 @@ export default function Component() {
 
   const loadStoredGenerations = async() => {
     try {      
-      let data = await axios.get(`${baseUrl}/generator/`)
+      let data = await axios.get(`${apiUrl}/generator/`)
       if (data.data.status) {
         let temp:StoredGeneration[]=[] 
 
@@ -732,7 +732,7 @@ export default function Component() {
   const deleteGeneration = async(id: string) => {
     if (confirm("Are you sure you want to delete this generation?")) {
 
-      let responce =await axios.post(`${baseUrl}/generator/delete`,{id:id})
+      let responce =await axios.post(`${apiUrl}/generator/delete`,{id:id})
       if(responce?.data.status){
       const newStoredGenerations = storedGenerations.filter((g) => g.id !== id)
       setStoredGenerations(newStoredGenerations)
